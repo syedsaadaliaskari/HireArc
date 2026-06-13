@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
+import Link from "next/link";
 
 interface Job {
   _id: string;
@@ -114,17 +115,44 @@ export default function JobDetailPage() {
 
           {user?.role === "SEEKER" && job.status === "OPEN" && (
             <div>
-              {applied ? (
-                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-lg text-sm font-medium">
-                  ✓ Applied
-                </span>
-              ) : (
-                <button
-                  onClick={() => setShowForm(!showForm)}
-                  className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
-                >
-                  Apply Now
-                </button>
+              {applied && (
+                <div className="bg-white rounded-xl shadow-sm p-8 text-center space-y-4">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                    <svg
+                      className="w-8 h-8 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4.5 12.75l6 6 9-13.5"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    Application Submitted!
+                  </h3>
+                  <p className="text-gray-500 text-sm">
+                    Your application has been sent successfully. Good luck!
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                    <Link
+                      href="/jobs"
+                      className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
+                    >
+                      Browse More Jobs
+                    </Link>
+                    <Link
+                      href="/dashboard"
+                      className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
+                    >
+                      View My Applications
+                    </Link>
+                  </div>
+                </div>
               )}
             </div>
           )}

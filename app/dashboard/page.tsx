@@ -19,6 +19,7 @@ interface Applicant {
   _id: string;
   status: string;
   coverLetter?: string;
+  cvPath?: string;
   createdAt: string;
   userId: {
     _id: string;
@@ -61,6 +62,208 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
+// ── Applicant Modal ────────────────────────────────────────────────────────
+function ApplicantModal({
+  applicant,
+  jobTitle,
+  onClose,
+  onUpdateStatus,
+  updatingId,
+}: {
+  applicant: Applicant;
+  jobTitle: string;
+  onClose: () => void;
+  onUpdateStatus: (id: string, status: "ACCEPTED" | "REJECTED") => void;
+  updatingId: string | null;
+}) {
+  // Close on backdrop click
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center px-4"
+      onClick={handleBackdrop}
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <div>
+            <p className="text-xs font-semibold text-indigo-500 uppercase tracking-widest mb-0.5">
+              Application Details
+            </p>
+            <h2 className="text-base font-bold text-gray-900">{jobTitle}</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18 18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div className="px-6 py-5 space-y-5">
+          {/* Applicant Info */}
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 font-bold text-xl shrink-0">
+              {applicant.userId.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">
+                {applicant.userId.name}
+              </h3>
+              <p className="text-sm text-gray-400">{applicant.userId.email}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span
+                  className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${STATUS_STYLES[applicant.status]}`}
+                >
+                  {applicant.status}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {timeAgo(applicant.createdAt)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bio */}
+          {applicant.userId.bio && (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                Bio
+              </p>
+              <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 rounded-xl px-4 py-3">
+                {applicant.userId.bio}
+              </p>
+            </div>
+          )}
+
+          {/* Skills */}
+          {applicant.userId.skills && applicant.userId.skills.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                Skills
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {applicant.userId.skills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full ring-1 ring-indigo-200 font-medium"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Cover Letter */}
+          {applicant.coverLetter ? (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                Cover Letter
+              </p>
+              <div className="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                {applicant.coverLetter}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                Cover Letter
+              </p>
+              <p className="text-sm text-gray-400 italic">
+                No cover letter provided
+              </p>
+            </div>
+          )}
+
+          {/* CV Download */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+              Resume / CV
+            </p>
+            {applicant.cvPath ? (
+              <a
+                href={`http://localhost:5000/${applicant.cvPath}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-indigo-700 active:scale-95 transition-all"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                  />
+                </svg>
+                Download CV
+              </a>
+            ) : (
+              <p className="text-sm text-gray-400 italic">No CV uploaded</p>
+            )}
+          </div>
+
+          {/* Accept / Reject Buttons */}
+          {applicant.status === "PENDING" && (
+            <div className="flex gap-3 pt-2 border-t border-gray-100">
+              <button
+                disabled={updatingId === applicant._id}
+                onClick={() => {
+                  onUpdateStatus(applicant._id, "ACCEPTED");
+                  onClose();
+                }}
+                className="flex-1 bg-emerald-600 text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50"
+              >
+                ✓ Accept
+              </button>
+              <button
+                disabled={updatingId === applicant._id}
+                onClick={() => {
+                  onUpdateStatus(applicant._id, "REJECTED");
+                  onClose();
+                }}
+                className="flex-1 bg-red-500 text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-red-600 active:scale-95 transition-all disabled:opacity-50"
+              >
+                ✕ Reject
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Dashboard ─────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const { user, token, isLoading } = useAuth();
   const router = useRouter();
@@ -68,14 +271,20 @@ export default function DashboardPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalApplicants, setTotalApplicants] = useState(0);
 
-  // Employer — expanded job to show applicants
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [applicants, setApplicants] = useState<Record<string, Applicant[]>>({});
   const [applicantsLoading, setApplicantsLoading] = useState<string | null>(
     null,
   );
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  // Modal state
+  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(
+    null,
+  );
+  const [selectedJobTitle, setSelectedJobTitle] = useState<string>("");
 
   useEffect(() => {
     if (!isLoading && !user) router.push("/auth/login");
@@ -89,7 +298,32 @@ export default function DashboardPage() {
           const res = await fetch("http://localhost:5000/api/jobs/my-jobs", {
             headers: { Authorization: `Bearer ${token}` },
           });
-          setJobs(await res.json());
+          const jobsData: Job[] = await res.json();
+          setJobs(jobsData);
+
+          const counts = await Promise.all(
+            jobsData.map(async (job) => {
+              try {
+                const r = await fetch(
+                  `http://localhost:5000/api/applications/job/${job._id}`,
+                  { headers: { Authorization: `Bearer ${token}` } },
+                );
+                const data: Applicant[] = await r.json();
+                return { jobId: job._id, applicants: data };
+              } catch {
+                return { jobId: job._id, applicants: [] };
+              }
+            }),
+          );
+
+          const applicantsMap: Record<string, Applicant[]> = {};
+          let total = 0;
+          counts.forEach(({ jobId, applicants }) => {
+            applicantsMap[jobId] = applicants;
+            total += applicants.length;
+          });
+          setApplicants(applicantsMap);
+          setTotalApplicants(total);
         } else {
           const res = await fetch("http://localhost:5000/api/applications/my", {
             headers: { Authorization: `Bearer ${token}` },
@@ -111,7 +345,7 @@ export default function DashboardPage() {
       return;
     }
     setExpandedJobId(jobId);
-    if (applicants[jobId]) return; // already loaded
+    if (applicants[jobId]) return;
     setApplicantsLoading(jobId);
     try {
       const res = await fetch(
@@ -160,7 +394,17 @@ export default function DashboardPage() {
     }
   };
 
-  // ── Loading Skeleton ────────────────────────────────────────
+  // Find jobId for modal update
+  const handleModalUpdate = (
+    applicationId: string,
+    status: "ACCEPTED" | "REJECTED",
+  ) => {
+    const jobId = Object.keys(applicants).find((jId) =>
+      applicants[jId].some((a) => a._id === applicationId),
+    );
+    if (jobId) updateStatus(applicationId, jobId, status);
+  };
+
   if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-[#F7F8FC]">
@@ -181,7 +425,18 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F8FC]">
-      {/* ── Page Header ─────────────────────────────────────── */}
+      {/* Applicant Modal */}
+      {selectedApplicant && (
+        <ApplicantModal
+          applicant={selectedApplicant}
+          jobTitle={selectedJobTitle}
+          onClose={() => setSelectedApplicant(null)}
+          onUpdateStatus={handleModalUpdate}
+          updatingId={updatingId}
+        />
+      )}
+
+      {/* Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -224,7 +479,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-        {/* ── Stats ───────────────────────────────────────────── */}
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {user?.role === "EMPLOYER" ? (
             <>
@@ -246,7 +501,7 @@ export default function DashboardPage() {
                 },
                 {
                   label: "Applicants",
-                  value: Object.values(applicants).flat().length,
+                  value: totalApplicants,
                   color: "text-blue-600",
                 },
               ].map((s) => (
@@ -302,7 +557,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* ── EMPLOYER VIEW ───────────────────────────────────── */}
+        {/* Employer View */}
         {user?.role === "EMPLOYER" && (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-gray-100">
@@ -313,21 +568,6 @@ export default function DashboardPage() {
 
             {jobs.length === 0 ? (
               <div className="py-20 text-center">
-                <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <svg
-                    className="w-6 h-6 text-indigo-400"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006-3.75 3.75m0 0-3.75-3.75m3.75 3.75V10.5"
-                    />
-                  </svg>
-                </div>
                 <p className="text-gray-500 font-medium mb-1">
                   No jobs posted yet
                 </p>
@@ -342,10 +582,9 @@ export default function DashboardPage() {
               <div className="divide-y divide-gray-100">
                 {jobs.map((job) => (
                   <div key={job._id}>
-                    {/* Job Row */}
                     <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-100 to-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-base border border-indigo-100 shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-base border border-indigo-100 shrink-0">
                           {job.company.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -377,7 +616,7 @@ export default function DashboardPage() {
                             <span>Loading...</span>
                           ) : (
                             <>
-                              Applicants
+                              {applicants[job._id]?.length ?? 0} Applicants
                               <svg
                                 className={`w-3.5 h-3.5 transition-transform ${expandedJobId === job._id ? "rotate-180" : ""}`}
                                 fill="none"
@@ -426,15 +665,22 @@ export default function DashboardPage() {
                                 className="bg-white rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-gray-100"
                               >
                                 <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-full bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
+                                  <div className="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
                                     {applicant.userId.name
                                       .charAt(0)
                                       .toUpperCase()}
                                   </div>
                                   <div>
-                                    <p className="text-sm font-semibold text-gray-900">
+                                    {/* ✅ Clickable name opens modal */}
+                                    <button
+                                      onClick={() => {
+                                        setSelectedApplicant(applicant);
+                                        setSelectedJobTitle(job.title);
+                                      }}
+                                      className="text-sm font-semibold text-gray-900 hover:text-indigo-600 transition text-left"
+                                    >
                                       {applicant.userId.name}
-                                    </p>
+                                    </button>
                                     <p className="text-xs text-gray-400">
                                       {applicant.userId.email}
                                     </p>
@@ -442,7 +688,7 @@ export default function DashboardPage() {
                                       applicant.userId.skills.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-1.5">
                                           {applicant.userId.skills
-                                            .slice(0, 4)
+                                            .slice(0, 3)
                                             .map((skill) => (
                                               <span
                                                 key={skill}
@@ -451,16 +697,36 @@ export default function DashboardPage() {
                                                 {skill}
                                               </span>
                                             ))}
+                                          {applicant.userId.skills.length >
+                                            3 && (
+                                            <span className="text-xs text-gray-400">
+                                              +
+                                              {applicant.userId.skills.length -
+                                                3}{" "}
+                                              more
+                                            </span>
+                                          )}
                                         </div>
                                       )}
                                   </div>
                                 </div>
+
                                 <div className="flex items-center gap-2 shrink-0">
                                   <span
                                     className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${STATUS_STYLES[applicant.status]}`}
                                   >
                                     {applicant.status}
                                   </span>
+                                  {/* View Details button */}
+                                  <button
+                                    onClick={() => {
+                                      setSelectedApplicant(applicant);
+                                      setSelectedJobTitle(job.title);
+                                    }}
+                                    className="text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition"
+                                  >
+                                    View Details
+                                  </button>
                                   {applicant.status === "PENDING" && (
                                     <>
                                       <button
@@ -505,7 +771,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ── SEEKER VIEW ─────────────────────────────────────── */}
+        {/* Seeker View */}
         {user?.role !== "EMPLOYER" && (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-gray-100">
