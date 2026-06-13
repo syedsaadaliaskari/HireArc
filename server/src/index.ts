@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import path from "path";
 import authRoutes from "./routes/auth.routes";
+import jobRoutes from "./routes/job.routes";
+import applicationRoutes from "./routes/application.routes";
 
 dotenv.config();
 
@@ -20,6 +22,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.use("/api/jobs", jobRoutes);
+app.use("/api/applications", applicationRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "HireArc API is running" });

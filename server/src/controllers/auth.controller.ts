@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User";
+import UserModel from "../models/User";
+import { AuthRequest } from "../middleware/auth.middleware";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -12,7 +13,7 @@ export const register = async (req: Request, res: Response) => {
       return;
     }
 
-    const existing = await User.findOne({ email });
+    const existing = await UserModel.findOne({ email });
     if (existing) {
       res.status(400).json({ error: "Email already registered" });
       return;
@@ -20,7 +21,7 @@ export const register = async (req: Request, res: Response) => {
 
     const hashed = await bcrypt.hash(password, 12);
 
-    const user = await User.create({
+    const user = await UserModel.create({
       name,
       email,
       password: hashed,
@@ -58,7 +59,7 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
-    const user = await User.findOne({ email });
+    const user = await UserModel.findOne({ email });
     if (!user) {
       res.status(400).json({ error: "Invalid credentials" });
       return;
@@ -91,9 +92,9 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const getMe = async (req: Request, res: Response) => {
+export const getMe = async (req: AuthRequest, res: Response) => {
   try {
-    const user = await User.findById((req as any).userId).select("-password");
+    const user = await UserModel.findById(req.userId).select("-password");
     if (!user) {
       res.status(404).json({ error: "User not found" });
       return;
